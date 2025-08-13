@@ -104,7 +104,7 @@ export default function RegisterMedicine() {
           {generatedTagId && (
             <div className="mt-6 p-4 bg-gray-50 rounded-lg text-center">
               <p className="font-semibold">Generated Tag ID:</p>
-              <p className="font-mono text-lg my-2 p-2 bg-gray-200 rounded-md inline-block">{generatedTagId}</p>
+              <p className="font-mono text-lg my-2 p-2 bg-gray-200 rounded-md inline-block break-all">{generatedTagId}</p>
               <div className="flex justify-center">
                 <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
