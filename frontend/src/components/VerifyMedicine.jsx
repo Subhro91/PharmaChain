@@ -47,7 +47,7 @@ export default function VerifyMedicine() {
       return;
     }
 
-    if (role !== "pharmacy") {
+    if (role !== "pharmacy_owner") {
       setMessage("❌ Access denied. Only pharmacy owners can verify medicine.");
       setLoading(false);
       return;
