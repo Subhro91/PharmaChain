@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import Header from './Header';
+import LoadingSpinner from './LoadingSpinner';
 
 export default function RegisterMedicine() {
   const [form, setForm] = useState({
@@ -11,6 +12,7 @@ export default function RegisterMedicine() {
   });
   const [message, setMessage] = useState("");
   const [generatedTagId, setGeneratedTagId] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -20,6 +22,7 @@ export default function RegisterMedicine() {
     e.preventDefault();
     setMessage("");
     setGeneratedTagId("");
+    setLoading(true);
 
     try {
       // ✅ Get JWT token from storage
@@ -49,6 +52,8 @@ export default function RegisterMedicine() {
         setMessage("❌ Error registering medicine.");
       }
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -94,12 +99,12 @@ export default function RegisterMedicine() {
               onChange={handleChange}
               required
             />
-            <button type="submit" className="w-full bg-[#27A292] text-white py-3 rounded-lg font-semibold hover:bg-[#208375] transition-colors">
-              Register Medicine
+            <button type="submit" className="w-full bg-[#27A292] text-white py-3 rounded-lg font-semibold hover:bg-[#208375] transition-colors disabled:opacity-50" disabled={loading}>
+              {loading ? <LoadingSpinner /> : 'Register Medicine'}
             </button>
           </form>
 
-          {message && <p className="mt-4 text-center text-sm text-green-600">{message}</p>}
+          {message && !loading && <p className="mt-4 text-center text-sm text-green-600">{message}</p>}
 
           {generatedTagId && (
             <div className="mt-6 p-4 bg-gray-50 rounded-lg text-center">

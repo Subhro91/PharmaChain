@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ShieldCheckIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import Header from './Header';
+import LoadingSpinner from './LoadingSpinner';
 
 export default function AuthPage() {
   // Get the location object
@@ -22,6 +23,7 @@ export default function AuthPage() {
   });
   const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -31,6 +33,7 @@ export default function AuthPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setLoading(true);
 
     try {
       if (isRegister) {
@@ -66,6 +69,8 @@ export default function AuthPage() {
     } catch (err) {
       console.error(err);
       setMessage("❌ Authentication failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -183,12 +188,12 @@ export default function AuthPage() {
               </div>
             )}
 
-            <button type="submit" className="w-full bg-[#27A292] text-white py-3 rounded-lg font-semibold hover:bg-[#208375] transition-colors">
-              {isRegister ? "Create Account" : "Sign In"}
+            <button type="submit" className="w-full bg-[#27A292] text-white py-3 rounded-lg font-semibold hover:bg-[#208375] transition-colors disabled:opacity-50" disabled={loading}>
+              {loading ? <LoadingSpinner /> : (isRegister ? "Create Account" : "Sign In")}
             </button>
           </form>
 
-          {message && <p className="mt-4 text-center text-sm text-red-600">{message}</p>}
+          {message && !loading && <p className="mt-4 text-center text-sm text-red-600">{message}</p>}
 
           <p className="mt-8 text-center text-sm text-gray-600">
             {isRegister ? "Already have an account? " : "Don't have an account? "}

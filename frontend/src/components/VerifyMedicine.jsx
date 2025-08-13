@@ -3,6 +3,7 @@ import axios from "axios";
 import { MagnifyingGlassIcon, CloudArrowUpIcon, QrCodeIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 import Header from './Header';
 import { ShieldCheckIcon } from '@heroicons/react/24/solid';
+import LoadingSpinner from './LoadingSpinner';
 
 const VerificationResultCard = ({ title, batch, expiry, manufacturer }) => (
   <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
@@ -29,6 +30,7 @@ export default function VerifyMedicine() {
   const [tagId, setTagId] = useState("");
   const [result, setResult] = useState(null);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Retrieve token & role from localStorage (saved at login)
   const token = localStorage.getItem("token");
@@ -37,6 +39,7 @@ export default function VerifyMedicine() {
   const handleVerify = async () => {
     setMessage("");
     setResult(null);
+    setLoading(true);
 
     if (!token) {
       setMessage("❌ You must be logged in as a pharmacy owner to verify medicine.");
@@ -63,6 +66,8 @@ export default function VerifyMedicine() {
     } catch (err) {
       setMessage("❌ Error verifying medicine.");
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,9 +93,13 @@ export default function VerifyMedicine() {
                 className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27A292]"
               />
             </div>
-            <button onClick={handleVerify} className="w-full md:w-auto bg-[#27A292] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#208375] transition-colors flex items-center justify-center">
-              <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
-              Verify
+            <button onClick={handleVerify} className="w-full md:w-auto bg-[#27A292] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#208375] transition-colors flex items-center justify-center disabled:opacity-50" disabled={loading}>
+              {loading ? <LoadingSpinner /> : (
+                <>
+                  <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
+                  Verify
+                </>
+              )}
             </button>
           </div>
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -107,7 +116,8 @@ export default function VerifyMedicine() {
 
         <div className="mt-12">
           <h3 className="text-xl font-semibold mb-6">Verification Results</h3>
-          {message && <p className="text-center py-4">{message}</p>}
+          {loading && <LoadingSpinner />}
+          {message && !loading && <p className="text-center py-4">{message}</p>}
           {result && result.found && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <VerificationResultCard 
