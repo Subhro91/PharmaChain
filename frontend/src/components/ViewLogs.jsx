@@ -1,8 +1,21 @@
 import React, { useState } from "react";
 import Header from './Header';
-import { MagnifyingGlassIcon, FunnelIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, FunnelIcon, ArrowDownTrayIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
+const CubeTransparentIcon = (props) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    fill="none" 
+    viewBox="0 0 24 24" 
+    strokeWidth={1.5} 
+    stroke="currentColor" 
+    {...props}
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+  </svg>
+);
 
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center py-8">
@@ -43,7 +56,7 @@ const ViewLogs = () => {
   const exportToPDF = () => {
     const doc = new jsPDF();
     autoTable(doc, {
-      head: [['Date', 'Time', 'Medicine', 'Batch Number', 'Status', 'User']],
+      head: [['Date', 'Time', 'Medicine', 'Batch Number', 'Status', 'User', 'Transaction ID']],
       body: logs
         .filter(log => log.tx.name && log.tx.batch)
         .map(log => [
@@ -52,7 +65,8 @@ const ViewLogs = () => {
           log.tx.name,
           log.tx.batch,
           'Verified',
-          log.tx.type === 'REGISTER' ? 'Manufacturer' : 'Pharmacist'
+          log.tx.type === 'REGISTER' ? 'Manufacturer' : 'Pharmacist',
+          log.hash
       ]),
     });
     doc.save('verification-logs.pdf');
@@ -126,6 +140,7 @@ const ViewLogs = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch Number</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Initialized By</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Hash</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -139,6 +154,15 @@ const ViewLogs = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.tx.batch}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><StatusBadge status="Verified" /></td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.tx.type === 'REGISTER' ? 'Manufacturer' : 'Pharmacist'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center">
+                          <CubeTransparentIcon className="h-5 w-5 mr-2 text-gray-400" />
+                          <span className="font-mono text-xs truncate">{log.hash}</span>
+                          <button onClick={() => navigator.clipboard.writeText(log.hash)} className="ml-2">
+                            <ClipboardDocumentIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

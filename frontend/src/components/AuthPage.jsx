@@ -59,12 +59,8 @@ export default function AuthPage() {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("role", res.data.role);
 
-        // Redirect based on role
-        if (role === "manufacturer") {
-          navigate("/register-medicine");
-        } else {
-          navigate("/verify-medicine");
-        }
+        // Redirect to the homepage after successful login
+        navigate("/");
       }
     } catch (err) {
       console.error(err);
