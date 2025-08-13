@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from './Header';
 import { MagnifyingGlassIcon, FunnelIcon, ArrowDownTrayIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import jsPDF from 'jspdf';
@@ -29,6 +29,11 @@ const ViewLogs = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    // Optional: auto-fetch if a tagId is present (e.g., from URL query params)
+    // For now, this just sets up the component.
+  }, []);
+
   const fetchLogs = async () => {
     if (!tagId.trim()) {
       setError("Please enter a tag ID");
@@ -55,16 +60,28 @@ const ViewLogs = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
+    const registrationLog = logs.find(log => log.tx.type === 'REGISTER');
+    const medicineName = registrationLog ? registrationLog.tx.name : 'N/A';
+    const batchNumber = registrationLog ? registrationLog.tx.batch : 'N/A';
+
     autoTable(doc, {
       head: [['Date', 'Time', 'Medicine', 'Batch Number', 'Status', 'User', 'Transaction ID']],
       body: logs
-        .filter(log => log.tx.name && log.tx.batch)
+        .filter(log => {
+          if (log.tx.type === 'REGISTER') {
+            return log.tx.name && log.tx.batch; // Keep registration logs
+          }
+          if (log.tx.type === 'VERIFY') {
+            return log.tx.found !== undefined; // Keep verification logs
+          }
+          return false;
+        })
         .map(log => [
           new Date(log.timestamp).toLocaleDateString(),
           new Date(log.timestamp).toLocaleTimeString(),
-          log.tx.name,
-          log.tx.batch,
-          'Verified',
+          log.tx.type === 'REGISTER' ? log.tx.name : medicineName,
+          log.tx.type === 'REGISTER' ? log.tx.batch : batchNumber,
+          log.tx.type === 'REGISTER' ? 'Registered' : 'Verified',
           log.tx.type === 'REGISTER' ? 'Manufacturer' : 'Pharmacist',
           log.hash
       ]),
@@ -129,7 +146,7 @@ const ViewLogs = () => {
           {error && <p className="text-center text-red-600 py-4">{error}</p>}
 
           {/* Logs Table */}
-          {logs.length > 0 && (
+          {logs.length > 0 && !loading && (
             <div className="mt-6 overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -145,26 +162,40 @@ const ViewLogs = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {logs
-                    .filter(log => log.tx.name && log.tx.batch)
-                    .map((log) => (
-                    <tr key={log.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{new Date(log.timestamp).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{new Date(log.timestamp).toLocaleTimeString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{log.tx.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.tx.batch}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><StatusBadge status="Verified" /></td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.tx.type === 'REGISTER' ? 'Manufacturer' : 'Pharmacist'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center">
-                          <CubeTransparentIcon className="h-5 w-5 mr-2 text-gray-400" />
-                          <span className="font-mono text-xs truncate">{log.hash}</span>
-                          <button onClick={() => navigator.clipboard.writeText(log.hash)} className="ml-2">
-                            <ClipboardDocumentIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                    .filter(log => {
+                      if (log.tx.type === 'REGISTER') {
+                        return log.tx.name && log.tx.batch;
+                      }
+                      if (log.tx.type === 'VERIFY') {
+                        return log.tx.found !== undefined;
+                      }
+                      return false;
+                    })
+                    .map((log) => {
+                      const registrationLog = logs.find(l => l.tx.type === 'REGISTER');
+                      const medicineName = registrationLog ? registrationLog.tx.name : 'N/A';
+                      const batchNumber = registrationLog ? registrationLog.tx.batch : 'N/A';
+
+                      return (
+                        <tr key={log.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{new Date(log.timestamp).toLocaleDateString()}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{new Date(log.timestamp).toLocaleTimeString()}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{log.tx.name || medicineName}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.tx.batch || batchNumber}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><StatusBadge status={log.tx.type === 'REGISTER' ? 'Registered' : 'Verified'} /></td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.tx.type === 'REGISTER' ? 'Manufacturer' : 'Pharmacist'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex items-center">
+                              <CubeTransparentIcon className="h-5 w-5 mr-2 text-gray-400" />
+                              <span className="font-mono text-xs truncate">{log.hash}</span>
+                              <button onClick={() => navigator.clipboard.writeText(log.hash)} className="ml-2">
+                                <ClipboardDocumentIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
                 </tbody>
               </table>
             </div>
