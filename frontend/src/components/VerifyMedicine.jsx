@@ -43,11 +43,13 @@ export default function VerifyMedicine() {
 
     if (!token) {
       setMessage("❌ You must be logged in as a pharmacy owner to verify medicine.");
+      setLoading(false);
       return;
     }
 
-    if (role !== "pharmacy_owner") {
+    if (role !== "pharmacy") {
       setMessage("❌ Access denied. Only pharmacy owners can verify medicine.");
+      setLoading(false);
       return;
     }
 
@@ -126,7 +128,7 @@ export default function VerifyMedicine() {
                 expiry={result.medicine.expiry}
                 manufacturer={result.medicine.manufacturer}
               />
-              {/* Add more cards as needed */}
+              
             </div>
           )}
         </div>
