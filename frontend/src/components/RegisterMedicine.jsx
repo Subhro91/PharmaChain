@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import Header from './Header';
 import LoadingSpinner from './LoadingSpinner';
+import { ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 
 export default function RegisterMedicine() {
   const [form, setForm] = useState({
@@ -109,7 +110,12 @@ export default function RegisterMedicine() {
           {generatedTagId && (
             <div className="mt-6 p-4 bg-gray-50 rounded-lg text-center">
               <p className="font-semibold">Generated Tag ID:</p>
-              <p className="font-mono text-lg my-2 p-2 bg-gray-200 rounded-md inline-block break-all">{generatedTagId}</p>
+              <div className="flex justify-center items-center my-2">
+                <p className="font-mono text-lg p-2 bg-gray-200 rounded-md inline-block break-all">{generatedTagId}</p>
+                <button onClick={() => navigator.clipboard.writeText(generatedTagId)} className="ml-2 p-2 rounded-full hover:bg-gray-200 transition-colors">
+                  <ClipboardDocumentIcon className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
               <div className="flex justify-center">
                 <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
