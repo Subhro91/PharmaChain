@@ -61,8 +61,6 @@ Follow these instructions to get a copy of the project up and running on your lo
     ```
     The application should now be running at [http://localhost:3000](http://localhost:3000).
 
-4.  **Backend Setup:**
-    (Instructions would be added here for setting up the backend server locally if applicable).
 
 ## 🚀 Deployment
 
