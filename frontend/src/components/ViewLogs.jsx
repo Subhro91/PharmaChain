@@ -81,7 +81,7 @@ const ViewLogs = () => {
           new Date(log.timestamp).toLocaleTimeString(),
           log.tx.type === 'REGISTER' ? log.tx.name : medicineName,
           log.tx.type === 'REGISTER' ? log.tx.batch : batchNumber,
-          log.tx.type === 'REGISTER' ? 'Registered' : 'Verified',
+          log.tx.type === 'REGISTER' ? 'Registered' : (log.tx.found ? 'Verified' : 'Not Found'),
           log.tx.type === 'REGISTER' ? 'Manufacturer' : 'Pharmacist',
           log.hash
       ]),
@@ -89,13 +89,25 @@ const ViewLogs = () => {
     doc.save('verification-logs.pdf');
   };
 
-  const StatusBadge = ({ status }) => (
-    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-      status === 'Verified' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-    }`}>
-      {status}
-    </span>
-  );
+  const StatusBadge = ({ status, found }) => {
+    const isVerified = status === 'Verified' && found;
+    const isRegistered = status === 'Registered';
+    let text = status;
+    if (status === 'Verified') {
+      text = found ? 'Verified' : 'Not Found';
+    } else if (status === 'Registered') {
+      text = 'Registered';
+    }
+
+
+    return (
+      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+        isRegistered ? 'bg-blue-100 text-blue-800' : isVerified ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+      }`}>
+        {text}
+      </span>
+    )
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E6F4F1] to-[#D4E9E2]">
@@ -182,7 +194,12 @@ const ViewLogs = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{new Date(log.timestamp).toLocaleTimeString()}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{log.tx.name || medicineName}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.tx.batch || batchNumber}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><StatusBadge status={log.tx.type === 'REGISTER' ? 'Registered' : 'Verified'} /></td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <StatusBadge 
+                              status={log.tx.type === 'REGISTER' ? 'Registered' : 'Verified'} 
+                              found={log.tx.found} 
+                            />
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.tx.type === 'REGISTER' ? 'Manufacturer' : 'Pharmacist'}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex items-center">

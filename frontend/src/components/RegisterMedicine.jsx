@@ -15,6 +15,17 @@ export default function RegisterMedicine() {
   const [generatedTagId, setGeneratedTagId] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const validate = () => {
+    const { name, batch, expiry, manufacturer } = form;
+    if (!name.trim() || !batch.trim() || !expiry || !manufacturer.trim()) {
+      return "All fields are required.";
+    }
+    if (new Date(expiry) < new Date()) {
+      return "Expiry date cannot be in the past.";
+    }
+    return null;
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -23,6 +34,13 @@ export default function RegisterMedicine() {
     e.preventDefault();
     setMessage("");
     setGeneratedTagId("");
+
+    const validationError = validate();
+    if (validationError) {
+      setMessage(`❌ ${validationError}`);
+      return;
+    }
+
     setLoading(true);
 
     try {

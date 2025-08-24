@@ -26,6 +26,26 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const validate = () => {
+    const newErrors = {};
+    if (isRegister && !form.name.trim()) newErrors.name = "Name is required.";
+    if (isRegister && !form.license_no.trim()) newErrors.license_no = "License number is required.";
+    if (!form.email.trim()) {
+      newErrors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = "Email is invalid.";
+    }
+    if (!form.password) {
+      newErrors.password = "Password is required.";
+    } else if (isRegister && form.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters.";
+    }
+    if (isRegister && form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match.";
+    }
+    return newErrors;
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -33,6 +53,14 @@ export default function AuthPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      const errorMessage = Object.values(validationErrors).join(" ");
+      setMessage(`❌ ${errorMessage}`);
+      return;
+    }
+
     setLoading(true);
 
     try {

@@ -39,6 +39,12 @@ export default function VerifyMedicine() {
   const handleVerify = async () => {
     setMessage("");
     setResult(null);
+
+    if (!tagId.trim()) {
+      setMessage("❌ Please enter a Tag ID to verify.");
+      return;
+    }
+
     setLoading(true);
 
     if (!token) {
